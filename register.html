@@ -11,7 +11,7 @@
   </head>
   <body>
     <div class="container">
-      <h1 class="text-center">WebAuthN demo application</h1>
+      <h1 class="text-center">Passkey demo application</h1>
 
       <div class="row">
         <div class="col text-center">
@@ -29,22 +29,26 @@
         </div>
       </div>
       <div class="row">
-        <div class="col text-center">
-          <button id="btn" class="btn btn-primary mt-5" onclick="registerPubkey()">
-            Create WebAuthN Credential
-          </button>
+        <div class="col-8 offset-2 col-md-6 offset-md-3 col-lg-4 offset-lg-4 text-center">
+            <button id="btn" class="btn btn-primary mt-5" onclick="registerPubkey()">
+                Create Passkey
+            </button>
+            
+            <p id="show_link" class="mt-5 d-none">
+                Passkey has been created. <a href="login.html">
+                Click here to go to the login page</a>.
+            </p>
         </div>
       </div>
     </div>
 
     <script>
       async function registerPubkey() {
-        // This data is coming from the server, a step we skip in this demo
+        // This data is coming from the server after we submitted an email address
         const serverData = {
           rpId: document.location.host,
           userId: '33c63b9c1dde4e2eb79192a283c37fe3',
-          userName: 'philippe',
-          userDisplayName: 'Philippe De Ryck',
+          email: 'philippe@pragmaticwebsecurity.com',
         };
 
         try {
@@ -57,8 +61,8 @@
               },
               user: {
                 id: Uint8Array.from(serverData.userId, (c) => c.charCodeAt(0)),
-                name: serverData.userName,
-                displayName: serverData.userDisplayName,
+                name: serverData.email,
+                displayName: "",
               },
               pubKeyCredParams: [
                 {
@@ -75,24 +79,26 @@
               challenge: new Uint8Array([0]),
 
               authenticatorSelection: {
-                userVerification: 'discouraged',
+                userVerification: 'required',
+                authenticatorAttachment: "cross-platform",
+                requireResidentKey: true 
               },
             },
           };
 
-          // Create the credential
+          // Create the passkey
           console.log(
-            'Creating credential with the data provided by the server ...'
+            'Creating passkey with the data provided by the server ...'
           );
           const credential = await navigator.credentials.create(
             createCredentialOptions
           );
-          console.log('Credential has been created...');
+          console.log('Passkey has been created...');
 
           await submitCredentialDataToServer(credential);
         } catch (error) {
           alert(
-            `Failed to register a public key: ${error.message} (more details in the console)`
+            `Failed to register a passkey: ${error.message} (more details in the console)`
           );
           console.log(error);
         }
@@ -101,6 +107,8 @@
       async function submitCredentialDataToServer(credential) {
         // Omitted the step of sending the credential response data to the server
         // Data structure: https://developer.mozilla.org/en-US/docs/Web/API/PublicKeyCredential/response
+
+        document.getElementById("show_link").classList.remove("d-none")
       }
 
       function detectFrame() {
