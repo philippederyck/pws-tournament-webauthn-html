@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Passkeys</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+      integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N"
+      crossorigin="anonymous"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <h1 class="text-center">Passkey demo application</h1>
+
+      <div class="row">
+        <div class="col text-center">
+          <p id="msg" class="alert alert-warning d-none mt-5">
+            This application does not work when running in a Stackblitz frame.
+            To use the Web Authentication API, make sure you
+            <a id="link" target="_blank"
+              >open the application in a top-level window</a
+            >.
+            <br />
+            <br />
+            Make sure that if the application runtime environment reinitializes,
+            you also reload the application.
+          </p>
+        </div>
+      </div>
+      <div class="row">
+        <div
+          class="
+            col-8
+            offset-2
+            col-md-6
+            offset-md-3
+            col-lg-4
+            offset-lg-4
+            text-center
+          "
+        >
+          <button
+            id="btn"
+            class="btn btn-primary mt-5"
+            onclick="login()"
+          >
+            Login
+          </button>
+
+          <input
+            type="text"
+            name="username"
+            autocomplete="username webauthn"
+            ...
+          />
+        </div>
+      </div>
+    </div>
+
+    <script>
+      async function login() {
+        try {
+          const getCredentialOptions = {
+            // mediation: 'conditional',
+            publicKey: {
+              rpId: document.location.host,
+              challenge: new Uint8Array([0]),
+            },
+          };
+
+          console.log('Authenticating with a passkey ...');
+          const credential = await navigator.credentials.get(
+            getCredentialOptions
+          );
+          console.log('Passkey has been used to sign challenge ...');
+
+          await submitCredentialDataToServer(credential);
+        } catch (error) {
+          alert(
+            `Failed to use a passkey: ${error.message} (more details in the console)`
+          );
+          console.log(error);
+        }
+      }
+
+      async function submitCredentialDataToServer(credential) {
+        // Omitted the step of sending the credential signature  data to the server
+        console.log(`Signature: ${buf2hex(credential.response.signature)}`);
+      }
+
+      function buf2hex(buffer) {
+        // buffer is an ArrayBuffer
+        return [...new Uint8Array(buffer)]
+          .map((x) => x.toString(16).padStart(2, '0'))
+          .join('');
+      }
+
+      function detectFrame() {
+        document.getElementById('link').href = document.location;
+        if (top != self) {
+          document.getElementById('msg').classList.remove('d-none');
+          document.getElementById('btn').classList.add('d-none');
+        }
+      }
+      document.addEventListener('DOMContentLoaded', detectFrame);
+    </script>
+  </body>
+</html>
