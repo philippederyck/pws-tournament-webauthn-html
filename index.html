@@ -15,68 +15,102 @@
 
       <div class="row">
         <div class="col text-center">
-            <button onclick="registerPubkey()">Create WebAuthN Credential</button>
+          <p id="msg" class="alert alert-warning d-none mt-5">
+            This application does not work when running in a Stackblitz frame.
+            To use the Web Authentication API, make sure you
+            <a id="link" target="_blank"
+              >open the application in a top-level window</a
+            >.
+            <br />
+            <br />
+            Make sure that if the application runtime environment reinitializes,
+            you also reload the application.
+          </p>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col text-center">
+          <button id="btn" class="btn btn-primary mt-5" onclick="registerPubkey()">
+            Create WebAuthN Credential
+          </button>
         </div>
       </div>
     </div>
 
     <script>
-        async function registerPubkey() {
-            // This data is coming from the server, a step we skip in this demo
-            const serverData = {
-                rpId: "pragmaticwebsecurity.com",
-                userId: "33c63b9c1dde4e2eb79192a283c37fe3",
-                userName: "philippe",
-                userDisplayName: "Philippe De Ryck"
-            }
+      async function registerPubkey() {
+        // This data is coming from the server, a step we skip in this demo
+        const serverData = {
+          rpId: document.location.host,
+          userId: '33c63b9c1dde4e2eb79192a283c37fe3',
+          userName: 'philippe',
+          userDisplayName: 'Philippe De Ryck',
+        };
 
-            try {
-                // Configure the WebAuthN options
-                const createCredentialOptions = {
-                    publicKey: {
-                        rp: {
-                            id: serverData.rpId,
-                            name: "WebAuthN demo application",
-                        },
-                        user: {
-                            id: Uint8Array.from(serverData.userId, c => c.charCodeAt(0)),
-                            name: serverData.userName,
-                            displayName: serverData.userDisplayName
-                        },
-                        pubKeyCredParams: [{
-                            type: "public-key",
-                            alg: -7
-                        }, {
-                            type: "public-key",
-                            alg: -257
-                        }],
+        try {
+          // Configure the WebAuthN options
+          const createCredentialOptions = {
+            publicKey: {
+              rp: {
+                id: serverData.rpId,
+                name: 'WebAuthN demo application',
+              },
+              user: {
+                id: Uint8Array.from(serverData.userId, (c) => c.charCodeAt(0)),
+                name: serverData.userName,
+                displayName: serverData.userDisplayName,
+              },
+              pubKeyCredParams: [
+                {
+                  type: 'public-key',
+                  alg: -7,
+                },
+                {
+                  type: 'public-key',
+                  alg: -257,
+                },
+              ],
 
-                        // Not needed during registration
-                        challenge: new Uint8Array([0]),
+              // Not needed during registration
+              challenge: new Uint8Array([0]),
 
-                        authenticatorSelection: {
-                            userVerification: 'discouraged'
-                        },
-                    }
-                };
+              authenticatorSelection: {
+                userVerification: 'discouraged',
+              },
+            },
+          };
 
-                // Create the credential
-                console.log("Creating credential with the data provided by the server ...")
-                const credential = await navigator.credentials.create(createCredentialOptions)
-                console.log("Credential has been created...")
-                
-                await submitCredentialDataToServer(credential)
-            }
-            catch(error) {
-                alert(`Failed to register a public key: ${error.message} (more details in the console)`)
-                console.log(error)
-            }
+          // Create the credential
+          console.log(
+            'Creating credential with the data provided by the server ...'
+          );
+          const credential = await navigator.credentials.create(
+            createCredentialOptions
+          );
+          console.log('Credential has been created...');
+
+          await submitCredentialDataToServer(credential);
+        } catch (error) {
+          alert(
+            `Failed to register a public key: ${error.message} (more details in the console)`
+          );
+          console.log(error);
         }
+      }
 
-        async function submitCredentialDataToServer(credential) {
-            // Omitted the step of sending the credential response data to the server
-            // Data structure: https://developer.mozilla.org/en-US/docs/Web/API/PublicKeyCredential/response
+      async function submitCredentialDataToServer(credential) {
+        // Omitted the step of sending the credential response data to the server
+        // Data structure: https://developer.mozilla.org/en-US/docs/Web/API/PublicKeyCredential/response
+      }
+
+      function detectFrame() {
+        document.getElementById('link').href = document.location;
+        if (top != self) {
+          document.getElementById('msg').classList.remove('d-none');
+          document.getElementById('btn').classList.add('d-none');
         }
+      }
+      document.addEventListener('DOMContentLoaded', detectFrame);
     </script>
   </body>
 </html>
